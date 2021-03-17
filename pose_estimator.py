@@ -10,6 +10,7 @@ class PoseEstimator:
         self.size = img_size
 
         # 3D model points.
+        #numpy.array 数据类型确定的数组加快运算
         self.model_points = np.array([
             (0.0, 0.0, 0.0),             # Nose tip
             (0.0, -330.0, -65.0),        # Chin
@@ -21,7 +22,8 @@ class PoseEstimator:
 
         self.model_points_68 = self._get_full_model_points()
 
-        # Camera internals
+        # Camera interna
+        # 用过图片大小推算相机内参
         self.focal_length = self.size[1]
         self.camera_center = (self.size[1] / 2, self.size[0] / 2)
         self.camera_matrix = np.array(
@@ -39,6 +41,7 @@ class PoseEstimator:
         # self.r_vec = None
         # self.t_vec = None
 
+    # 3Dm模型文件
     def _get_full_model_points(self, filename='assets/model.txt'):
         """Get all 68 3D model points from file"""
         raw_value = []
@@ -99,6 +102,7 @@ class PoseEstimator:
                 self.model_points_68, image_points, self.camera_matrix, self.dist_coeefs)
             self.r_vec = rotation_vector
             self.t_vec = translation_vector
+        #return (self.r_vec, self.t_vec)
 
         (_, rotation_vector, translation_vector) = cv2.solvePnP(
             self.model_points_68,

@@ -11,22 +11,30 @@ class FaceDetector:
                  dnn_proto_text='assets/deploy.prototxt',
                  dnn_model='assets/res10_300x300_ssd_iter_140000.caffemodel'):
         """Initialization"""
+        ##读入网络模型（计算图模型）以及预训练参数
         self.face_net = cv2.dnn.readNetFromCaffe(dnn_proto_text, dnn_model)
         self.detection_result = None
 
+    #返回可能性大于threshold的face的confidence_list and locationxyxy_list
     def get_faceboxes(self, image, threshold=0.5):
         """
         Get the bounding box of faces in image using dnn.
         """
+        #image.shape 返回高宽位深(rbg)
         rows, cols, _ = image.shape
 
         confidences = []
         faceboxes = []
 
+        #向读入的dnn网络中输入样本X
+        #blobFromImage 返回一个预处理后的结果 缩放1倍 输入图像尺寸（300*300）各通道减去的值 不交换RB 不建材
         self.face_net.setInput(cv2.dnn.blobFromImage(
             image, 1.0, (300, 300), (104.0, 177.0, 123.0), False, False))
-        detections = self.face_net.forward()
 
+        #计算网络输出
+        detections = self.face_net.forward()
+        #返回了一个1*1*200*7的向量
+        #分别是 0、1、fidence、左下角x、左下角y、右上角x、右上角y
         for result in detections[0, 0, :, :]:
             confidence = result[2]
             if confidence > threshold:
@@ -58,7 +66,7 @@ class FaceDetector:
             cv2.putText(image, label, (facebox[0], facebox[1]),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
 
-
+#用卷积网络识别脸部特征
 class MarkDetector:
     """Facial landmark detector by Convolutional Neural Network"""
 
@@ -73,13 +81,15 @@ class MarkDetector:
         # Get a TensorFlow session ready to do landmark detection
         # Load a Tensorflow saved model into memory.
         self.graph = tf.Graph()
-        config = tf.ConfigProto()
+        config = tf.compat.v1.ConfigProto()
         config.gpu_options.allow_growth = True
-        self.sess = tf.Session(graph=self.graph, config=config)
+        #生成tf环境（计算图、参数）
+        self.sess = tf.compat.v1.Session(graph=self.graph, config=config)
 
         # Restore model from the saved_model file, that is exported by
         # TensorFlow estimator.
-        tf.saved_model.loader.load(self.sess, ["serve"], saved_model)
+        #将已有模型存到环境中
+        tf.compat.v1.saved_model.loader.load(self.sess, ["serve"], saved_model)
 
     @staticmethod
     def draw_box(image, boxes, box_color=(255, 255, 255)):
@@ -115,11 +125,13 @@ class MarkDetector:
 
         if diff == 0:                   # Already a square.
             return box
+        # 瘦
         elif diff > 0:                  # Height > width, a slim box.
             left_x -= delta
             right_x += delta
             if diff % 2 == 1:
                 right_x += 1
+        #胖
         else:                           # Width > height, a short box.
             top_y -= delta
             bottom_y += delta
@@ -140,13 +152,17 @@ class MarkDetector:
 
     def extract_cnn_facebox(self, image):
         """Extract face area from image."""
+
+        #获得图片中左下右上xxyy组成的list
         _, raw_boxes = self.face_detector.get_faceboxes(
             image=image, threshold=0.9)
-
+        #对get_faceboxess得到的数据进行规格处理
         for box in raw_boxes:
             # Move box down.
             # diff_height_width = (box[3] - box[1]) - (box[2] - box[0])
+            #十分之一的 高度（y方向）
             offset_y = int(abs((box[3] - box[1]) * 0.1))
+            #向上移动十分之一高度
             box_moved = self.move_box(box, [0, offset_y])
 
             # Make box square.
@@ -164,12 +180,16 @@ class MarkDetector:
             'layer6/final_dense:0')
 
         # Actual detection.
+        #执行计算图 feed_dict 更改图中一个参数
+        #predictions为68个特征点坐标
         predictions = self.sess.run(
             logits_tensor,
             feed_dict={'image_tensor:0': image_np})
 
         # Convert predictions to landmarks.
+        #将【rediction】平铺为一个向量
         marks = np.array(predictions).flatten()[:136]
+        #-1根据其他维度推断 所以68个特征是一个2*68的矩阵
         marks = np.reshape(marks, (-1, 2))
 
         return marks

@@ -5,10 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="59595be7-4d25-46f3-acfb-8ccff153cb05" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/estimate_head_pose_image.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/estimate_head_pose.py" beforeDir="false" afterPath="$PROJECT_DIR$/estimate_head_pose.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mark_detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/mark_detector.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pose_estimator.py" beforeDir="false" afterPath="$PROJECT_DIR$/pose_estimator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
